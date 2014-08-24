@@ -1711,16 +1711,18 @@ firepad.RichTextToolbar = (function(global) {
     this.element_ = this.makeElement_();
   }
 
-  utils.makeEventEmitter(RichTextToolbar, ['bold', 'italic', 'underline', 'strike', 'font', 'font-size', 'color',
-    'left', 'center', 'right', 'unordered-list', 'ordered-list', 'todo-list', 'indent-increase', 'indent-decrease',
-                                           'undo', 'redo', 'insert-image']);
+// , [
+    // 'bold', 'paragraph', 'italic', 'underline', 'strike', 'font', 'font-size', 'color',
+    // 'left', 'center', 'right', 'unordered-list', 'ordered-list', 'todo-list', 'indent-increase', 'indent-decrease',
+    // 'undo', 'redo', 'insert-image', 'a']
+  utils.makeEventEmitter(RichTextToolbar);
 
   RichTextToolbar.prototype.element = function() { return this.element_; };
 
   RichTextToolbar.prototype.makeButton_ = function(eventName, iconName) {
     var self = this;
     iconName = iconName || eventName;
-    var btn = utils.elt('a', [utils.elt('span', '', { 'class': 'firepad-tb-' + iconName } )], { 'class': 'firepad-btn' });
+    var btn = utils.elt('a', [utils.elt('i', '', { 'class': 'fa-' + iconName } )], { 'class': 'firepad-btn' });
     utils.on(btn, 'click', utils.stopEventAnd(function() { self.trigger(eventName); }));
     return btn;
   }
@@ -1728,23 +1730,35 @@ firepad.RichTextToolbar = (function(global) {
   RichTextToolbar.prototype.makeElement_ = function() {
     var self = this;
 
-    var font = this.makeFontDropdown_();
-    var fontSize = this.makeFontSizeDropdown_();
+    // var font = this.makeFontDropdown_();
+    // var fontSize = this.makeFontSizeDropdown_();
     var color = this.makeColorDropdown_();
+    var paragraph = this.makeParagrahDropdown_();
 
     var toolbarOptions = [
-      utils.elt('div', [font], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [fontSize], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [color], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [self.makeButton_('bold'), self.makeButton_('italic'), self.makeButton_('underline'), self.makeButton_('strike', 'strikethrough')], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [self.makeButton_('unordered-list', 'list-2'), self.makeButton_('ordered-list', 'numbered-list'), self.makeButton_('todo-list', 'list')], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [self.makeButton_('indent-decrease'), self.makeButton_('indent-increase')], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [self.makeButton_('left', 'paragraph-left'), self.makeButton_('center', 'paragraph-center'), self.makeButton_('right', 'paragraph-right')], { 'class': 'firepad-btn-group'}),
-      utils.elt('div', [self.makeButton_('undo'), self.makeButton_('redo')], { 'class': 'firepad-btn-group'})
+      // utils.elt('div', [font], { 'class': 'firepad-btn-group'}),
+      utils.elt('div', [paragraph], { 'class': 'firepad-btn-group'}),
+      // utils.elt('div', [fontSize], { 'class': 'firepad-btn-group'}),
+      // utils.elt('div', [color], { 'class': 'firepad-btn-group'}),
+      utils.elt('div', [
+        self.makeButton_('bold'), 
+        self.makeButton_('italic'), 
+        
+        // self.makeButton_('underline'), 
+        self.makeButton_('strike', 'strikethrough')], 
+        { 'class': 'firepad-btn-group'}),
+
+      utils.elt('div', [self.makeButton_('a', 'chain'),self.makeButton_('remove-a', 'chain-broken')], { 'class': 'firepad-btn-group'}),
+
+      utils.elt('div', [self.makeButton_('unordered-list', 'list-ul'), self.makeButton_('ordered-list', 'list-ol')], { 'class': 'firepad-btn-group'}),
+      // utils.elt('div', [self.makeButton_('unordered-list', 'list-2'), self.makeButton_('ordered-list', 'numbered-list'), self.makeButton_('todo-list', 'list')], { 'class': 'firepad-btn-group'}),
+      utils.elt('div', [self.makeButton_('indent-decrease', 'outdent'), self.makeButton_('indent-increase', 'indent')], { 'class': 'firepad-btn-group'}),
+      utils.elt('div', [self.makeButton_('left', 'align-left'), self.makeButton_('center', 'align-center'), self.makeButton_('right', 'align-right')], { 'class': 'firepad-btn-group'}),
+      utils.elt('div', [self.makeButton_('undo', 'rotate-left'), self.makeButton_('redo', 'rotate-right')], { 'class': 'firepad-btn-group'})
     ];
 
     if (self.imageInsertionUI) {
-      toolbarOptions.push(utils.elt('div', [self.makeButton_('insert-image')], { 'class': 'firepad-btn-group' }));
+      toolbarOptions.push(utils.elt('div', [self.makeButton_('insert-image', 'file-picture-o')], { 'class': 'firepad-btn-group' }));
     }
 
     var toolbarWrapper = utils.elt('div', toolbarOptions, { 'class': 'firepad-toolbar-wrapper' });
@@ -1752,6 +1766,23 @@ firepad.RichTextToolbar = (function(global) {
     toolbar.appendChild(toolbarWrapper)
 
     return toolbar;
+  };
+
+  RichTextToolbar.prototype.makeParagrahDropdown_ = function() {
+    var fonts = [ ['Normal', ''], 
+                  ['Heading 1', 'h1'], ['Heading 2', 'h2'], ['Heading 3', 'h3'], 
+                  ['Heading 4', 'h4'], ['Heading 5', 'h5'], ['Heading 6', 'h6'], 
+                  ['Code', 'code'], 
+                  ['Quote', 'bq'] ];
+
+    var items = [];
+    for(var i = 0; i < fonts.length; i++) {
+      var content = utils.elt('span', fonts[i][0]);
+      content.setAttribute('class', 'firepad-p-' + fonts[i][1]);
+      // content.setAttribute('style', 'font-family:' + fonts[i]);
+      items.push({ content: content, value: fonts[i][1] });
+    }
+    return this.makeDropdown_('Paragraph', 'paragraph', items);
   };
 
   RichTextToolbar.prototype.makeFontDropdown_ = function() {
@@ -2691,13 +2722,19 @@ firepad.AttributeConstants = {
   FONT_SIZE: 'fs',
   COLOR: 'c',
   BACKGROUND_COLOR: 'bc',
+  LINK: 'a',
+
   ENTITY_SENTINEL: 'ent',
 
 // Line Attributes
   LINE_SENTINEL: 'l',
   LINE_INDENT: 'li',
   LINE_ALIGN: 'la',
-  LIST_TYPE: 'lt'
+  LIST_TYPE: 'lt',
+
+// blocks
+  PARAGRAPH: 'p',  
+
 };
 
 firepad.sentinelConstants = {
@@ -3261,6 +3298,8 @@ firepad.RichTextCodeMirror = (function () {
           // Probably could be removed now as parseHtml automatically adds px when required
           if (attr === ATTR.FONT_SIZE && typeof val !== "string") {
             val = val + "px";
+          } else if (attr === ATTR.LINK) {
+            val = '';
           }
 
           var classVal = val.toString().toLowerCase().replace(/[^a-z0-9-_]/g, '-');
@@ -5180,7 +5219,7 @@ firepad.Headless = (function() {
 
     self.initializeFakeDom(function() {
       self.getDocument(function(doc) {
-        callback(firepad.SerializeHtml(doc, this.entityManager));
+        callback(firepad.SerializeHtml(doc, self.entityManager));
       });
     });
   }
@@ -5290,8 +5329,6 @@ firepad.Firepad = (function(global) {
       this.addToolbar_();
       this.firepadWrapper_.className += ' firepad-richtext firepad-with-toolbar';
     }
-
-    this.addPoweredByLogo_();
 
     // Now that we've mucked with CodeMirror, refresh it.
     if (this.codeMirror_)
@@ -5532,6 +5569,23 @@ firepad.Firepad = (function(global) {
     this.codeMirror_.focus();
   };
 
+  Firepad.prototype.removeAnchor = function() {
+    this.richTextCodeMirror_.toggleAttribute(ATTR.LINK, false);
+    this.codeMirror_.focus();
+  };
+
+  Firepad.prototype.paragraph = function(type) {
+    if (type == '') {
+      this.richTextCodeMirror_.setLineAttribute(ATTR.PARAGRAPH, false);
+    } else {
+    // if (type == 'h1' || type == 'h2' || type == 'h3') {
+      this.richTextCodeMirror_.setLineAttribute(ATTR.PARAGRAPH, type);
+    } 
+
+    // this.richTextCodeMirror_.setLineAttribute(ATTR.LINE_ALIGN, alignment);
+    this.codeMirror_.focus();
+  };
+
   Firepad.prototype.orderedList = function() {
     this.richTextCodeMirror_.toggleLineAttribute(ATTR.LIST_TYPE, 'o');
     this.codeMirror_.focus();
@@ -5606,7 +5660,46 @@ firepad.Firepad = (function(global) {
     this.makeDialog_('img', 'Insert image url');
   };
 
-  Firepad.prototype.makeDialog_ = function(id, placeholder) {
+  Firepad.prototype.makeAnchorDialog_ = function(prev) {
+    var id ='a';
+    var placeholder = 'test';
+   var self = this;
+
+   var hideDialog = function() {
+     var dialog = document.getElementById('overlay');
+     dialog.style.visibility = "hidden";
+     self.firepadWrapper_.removeChild(dialog);
+   };
+
+   var cb = function() {
+     var dialog = document.getElementById('overlay');
+     dialog.style.visibility = "hidden";
+     var src = document.getElementById(id).value;
+
+     self.richTextCodeMirror_.toggleAttribute(ATTR.LINK, 'http://aaa');
+     self.codeMirror_.focus();
+     // if (src !== null)
+     //   self.insertEntity(id, { 'src': src });
+     // self.firepadWrapper_.removeChild(dialog); 
+   };
+
+   var input = utils.elt('input', null, { 'class':'firepad-dialog-input', 'id':id, 'type':'text', 'placeholder':placeholder, 'autofocus':'autofocus' });
+
+   var submit = utils.elt('a', 'Submit', { 'class': 'firepad-btn', 'id':'submitbtn' });
+   utils.on(submit, 'click', utils.stopEventAnd(cb));
+
+   var cancel = utils.elt('a', 'Cancel', { 'class': 'firepad-btn' });
+   utils.on(cancel, 'click', utils.stopEventAnd(hideDialog));
+
+   var buttonsdiv = utils.elt('div', [submit, cancel], { 'class':'firepad-btn-group' });
+
+   var div = utils.elt('div', [input, buttonsdiv], { 'class':'firepad-dialog-div' });
+   var dialog = utils.elt('div', [div], { 'class': 'firepad-dialog', id:'overlay' });
+
+   this.firepadWrapper_.appendChild(dialog);
+  };
+
+  Firepad.prototype.makeDialog_ = function(id, placeholder, value) {
    var self = this;
 
    var hideDialog = function() {
@@ -5646,6 +5739,7 @@ firepad.Firepad = (function(global) {
     this.toolbar.on('undo', this.undo, this);
     this.toolbar.on('redo', this.redo, this);
     this.toolbar.on('bold', this.bold, this);
+    this.toolbar.on('paragraph', this.paragraph, this);
     this.toolbar.on('italic', this.italic, this);
     this.toolbar.on('underline', this.underline, this);
     this.toolbar.on('strike', this.strike, this);
@@ -5661,15 +5755,10 @@ firepad.Firepad = (function(global) {
     this.toolbar.on('indent-increase', this.indent, this);
     this.toolbar.on('indent-decrease', this.unindent, this);
     this.toolbar.on('insert-image', this.makeImageDialog_, this);
+    this.toolbar.on('a', this.makeAnchorDialog_, this);
+    this.toolbar.on('remove-a', this.removeAnchor, this);
 
     this.firepadWrapper_.insertBefore(this.toolbar.element(), this.firepadWrapper_.firstChild);
-  };
-
-  Firepad.prototype.addPoweredByLogo_ = function() {
-    var poweredBy = utils.elt('a', null, { 'class': 'powered-by-firepad'} );
-    poweredBy.setAttribute('href', 'http://www.firepad.io/');
-    poweredBy.setAttribute('target', '_blank');
-    this.firepadWrapper_.appendChild(poweredBy)
   };
 
   Firepad.prototype.initializeKeyMap_ = function() {
